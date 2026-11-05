@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canteen seat map</title>
+<style>
+:root{color-scheme:dark;--paper:#102541;--line:#c1d8ef;--muted:#adc5dd;--free:#82e7cf;--low:#ffd792;--full:#ffacb1;--cam:#d9baff}
+*{box-sizing:border-box}
+body{margin:0;background:#0a192d;color:#eff7ff;font:16px "Segoe UI",sans-serif}
+main{max-width:1460px;margin:auto;padding:clamp(16px,4vw,48px)}
+header{display:flex;flex-wrap:wrap;gap:20px;align-items:end;justify-content:space-between;margin-bottom:20px}
+h1{margin:0;font-size:clamp(30px,4vw,52px);letter-spacing:-.045em;line-height:1}
+p{margin:.55rem 0;color:var(--muted)}
+.actions,.totals,.legend{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px}
+button{font:inherit;border:1px solid #6b87a3;border-radius:5px;background:#193652;color:#fff;padding:9px 13px;cursor:pointer}
+button:hover{background:#254968}
+button:focus-visible,input:focus-visible{outline:2px solid var(--free);outline-offset:4px}
+figure{margin:0;border:1px solid #54728e;background:var(--paper)}
+.totals{padding:14px 20px;border-bottom:1px solid #54728e}
+.totals strong{color:var(--free);font-size:25px;font-variant-numeric:tabular-nums}
+.totals span{white-space:nowrap}
+.scroll{overflow:auto;background-image:linear-gradient(#48698b2b 1px,transparent 1px),linear-gradient(90deg,#48698b2b 1px,transparent 1px);background-size:22px 22px}
+svg{display:block;width:100%;min-width:840px}
+svg text{dominant-baseline:central;fill:#e4f2ff;stroke:none}
+.WALL,.DOOR,.FIXTURE,.TABLE,.CHAIR,.STANDING,.CAMERA,.CAMERA_LINK{fill:none;stroke:var(--line);stroke-width:2}
+.WALL{stroke-width:5;stroke-linejoin:round}
+.FIXTURE{fill:#193957;stroke:#8eaac5;stroke-width:2.5}
+.DOOR{stroke:#ffd792}
+text.STANDING{stroke:none;fill:var(--muted)}
+.RESERVED{fill:var(--cam)}
+rect.CAMERA{fill:#312957;stroke:var(--cam)}
+.CAMERA_LINK{stroke:var(--cam);stroke-opacity:.48;stroke-width:2;stroke-dasharray:9 7}
+#coverage[hidden]{display:none}
+rect.TABLE,rect.STANDING{stroke:var(--status);fill:#17354c}
+.CHAIR{stroke:var(--status);opacity:.72}
+.available{fill:var(--status);font-size:23px;font-weight:700}
+.item{--status:var(--free)}
+.item.low{--status:var(--low)}
+.item.full{--status:var(--full)}
+figcaption{padding:14px 20px;border-top:1px solid #54728e;color:var(--muted);font-size:14px}
+.legend{margin-bottom:6px}
+.legend b{color:var(--free)} .legend .low{color:var(--low)} .legend .full{color:var(--full)}
+
+:root{color-scheme:light;--paper:#fff;--line:#252525;--muted:#4a4a4a;--free:#075344;--low:#754000;--full:#7c1d30;--cam:#343434}
+body{background:#fff;color:#111}
+figure,.totals,figcaption{border-color:#aaa}
+.scroll{background-image:none}
+button{background:#fff;color:#111;border-color:#444}
+button:hover{background:#eee}
+svg text{fill:#161616}
+.FIXTURE{fill:#f2f2f2;stroke:#222}
+.DOOR{stroke:#333}
+rect.CAMERA{fill:#e4e4e4;stroke:#333}
+rect.TABLE,rect.STANDING{fill:#fff}
+.item .available{fill:var(--status)}
+.legend b{border:1px solid currentColor;padding:2px 7px;background:#fff}
+</style>
+<main>
+<header><div><h1>Canteen seat map</h1><p>PSDT prototype · Simulated camera counts</p></div>
+<div class="actions"><label><input id="toggle" type="checkbox"> Camera assignments</label><button id="sample">Simulate camera update</button></div></header>
+<figure>
+<div class="totals" aria-live="polite" aria-atomic="true"><span><strong id="general"></strong> general seats free</span><span><strong id="reserved"></strong> reserved seats free</span><span><strong id="standing"></strong> standing spots free</span></div>
+<div class="scroll" tabindex="0" aria-label="Scrollable canteen floor plan"><svg viewBox="40 105 2250 1070" role="img" aria-label="Canteen floor plan with available seats by table"><rect class="SHEET" x="30" y="22" width="2270" height="1216" style="display:none"/>
+<g id="coverage" hidden><polyline class="CAMERA_LINK" points="255,473 171,373"/><polyline class="CAMERA_LINK" points="255,473 412,373"/><polyline class="CAMERA_LINK" points="255,473 171,523"/><polyline class="CAMERA_LINK" points="666,802 589,726"/><polyline class="CAMERA_LINK" points="666,802 744,726"/><polyline class="CAMERA_LINK" points="666,802 434,878"/><polyline class="CAMERA_LINK" points="666,802 589,878"/><polyline class="CAMERA_LINK" points="666,802 744,878"/><polyline class="CAMERA_LINK" points="666,802 434,1030"/><polyline class="CAMERA_LINK" points="666,802 589,1030"/><polyline class="CAMERA_LINK" points="666,802 744,1030"/><polyline class="CAMERA_LINK" points="1110,415 930,555"/><polyline class="CAMERA_LINK" points="1110,415 1048,555"/><polyline class="CAMERA_LINK" points="1110,415 1166,555"/><polyline class="CAMERA_LINK" points="1110,415 1284,555"/><polyline class="CAMERA_LINK" points="1902,832 1498,686"/><polyline class="CAMERA_LINK" points="1902,832 1498,817"/><polyline class="CAMERA_LINK" points="1902,832 1660,817"/><polyline class="CAMERA_LINK" points="1902,832 1498,937"/><polyline class="CAMERA_LINK" points="1902,832 1660,937"/><polyline class="CAMERA_LINK" points="1902,832 1818,937"/><polyline class="CAMERA_LINK" points="1902,832 1498,1053"/><polyline class="CAMERA_LINK" points="1902,832 1660,1053"/><polyline class="CAMERA_LINK" points="1902,832 1818,1053"/><polyline class="CAMERA_LINK" points="1902,832 1999,1063"/><polyline class="CAMERA_LINK" points="1902,832 2144,1063"/><polyline class="CAMERA_LINK" points="2040,543 2170,235"/><polyline class="CAMERA_LINK" points="2040,543 1916,465"/><polyline class="CAMERA_LINK" points="2040,543 2170,465"/><polyline class="CAMERA_LINK" points="2040,543 1916,636"/><polyline class="CAMERA_LINK" points="2040,543 2170,636"/></g>
+<polyline class="WALL" points="115,1128 85,1128 85,290 116,290"/>
+<polyline class="WALL" points="260,1128 855,1128 855,621 1413,621 1413,1128 2260,1128 2260,968"/>
+<polyline class="WALL" points="2260,808 2260,128 1837,128 1837,310"/>
+<polyline class="WALL" points="1837,403 1837,725 1991,725"/>
+<polyline class="WALL" points="2095,725 2260,725"/>
+<polyline class="WALL" points="400,290 482,290"/>
+<polyline class="WALL" points="710,290 769,290"/>
+<polyline class="WALL" points="1130,290 1254,290"/>
+<polyline class="WALL" points="1414,290 1454,290"/>
+<polyline class="WALL" points="1740,290 1837,290"/>
+<polyline class="WALL" points="323,1128 323,835"/>
+<rect class="FIXTURE" x="116" y="155" width="284" height="135" />
+<text class="LABEL" x="258.0" y="222.5" font-size="24" text-anchor="middle">Juice counter</text>
+<rect class="FIXTURE" x="482" y="155" width="228" height="135" />
+<text class="LABEL" x="596.0" y="222.5" font-size="24" text-anchor="middle">Washroom</text>
+<rect class="FIXTURE" x="769" y="155" width="361" height="135" />
+<text class="LABEL" x="949.5" y="222.5" font-size="24" text-anchor="middle">Ordering counter</text>
+<rect class="FIXTURE" x="1254" y="155" width="160" height="135" />
+<text class="LABEL" x="1334.0" y="222.5" font-size="24" text-anchor="middle">Fast food</text>
+<rect class="FIXTURE" x="1454" y="155" width="286" height="135" />
+<text class="LABEL" x="1597.0" y="222.5" font-size="24" text-anchor="middle">Cooked food</text>
+<polyline class="DOOR" points="115,1128 115,983"/>
+<path class="DOOR" d="M 115 983 A 145 145 0 0 1 260 1128"/>
+<polyline class="DOOR" points="2260,968 2100,968"/>
+<path class="DOOR" d="M 2100 968 A 160 160 0 0 1 2260 808"/>
+<text class="LABEL" x="183" y="1153" font-size="21" text-anchor="middle">Entrance</text>
+<text class="LABEL" x="2165" y="927" font-size="19" text-anchor="middle">Door</text>
+<text class="LABEL" x="1786" y="356" font-size="17" text-anchor="middle">Access</text>
+<text class="LABEL" x="2043" y="746" font-size="17" text-anchor="middle">Access</text>
+<text class="RESERVED" x="1858" y="171" font-size="23" text-anchor="start">Girls&#x27; reserved seating</text>
+<text class="LABEL" x="210" y="660" font-size="26" text-anchor="middle">West dining</text>
+<text class="LABEL" x="1640" y="565" font-size="26" text-anchor="middle">East dining</text>
+<text class="STANDING" x="1104" y="491" font-size="22" text-anchor="middle">Standing counter</text>
+<g class="item" data-id="T01"><title>T01</title>
+<rect class="TABLE" x="127" y="339" width="88" height="68" />
+<rect class="CHAIR" x="141" y="324" width="16" height="12" />
+<rect class="CHAIR" x="185" y="324" width="16" height="12" />
+<rect class="CHAIR" x="141" y="410" width="16" height="12" />
+<rect class="CHAIR" x="185" y="410" width="16" height="12" />
+<rect class="CHAIR" x="110" y="367" width="16" height="12" />
+<rect class="CHAIR" x="216" y="367" width="16" height="12" />
+<text class="LABEL" x="171" y="361" font-size="15" text-anchor="middle">T01</text>
+<text class="available" x="171" y="385" text-anchor="middle"></text></g>
+<g class="item" data-id="T02"><title>T02</title>
+<rect class="TABLE" x="368" y="339" width="88" height="68" />
+<rect class="CHAIR" x="382" y="324" width="16" height="12" />
+<rect class="CHAIR" x="426" y="324" width="16" height="12" />
+<rect class="CHAIR" x="382" y="410" width="16" height="12" />
+<rect class="CHAIR" x="426" y="410" width="16" height="12" />
+<rect class="CHAIR" x="351" y="367" width="16" height="12" />
+<rect class="CHAIR" x="457" y="367" width="16" height="12" />
+<text class="LABEL" x="412" y="361" font-size="15" text-anchor="middle">T02</text>
+<text class="available" x="412" y="385" text-anchor="middle"></text></g>
+<g class="item" data-id="T03"><title>T03</title>
+<rect class="TABLE" x="127" y="489" width="88" height="68" />
+<rect class="CHAIR" x="141" y="474" width="16" height="12" />
+<rect class="CHAIR" x="185" y="474" width="16" height="12" />
+<rect class="CHAIR" x="141" y="560" width="16" height="12" />
+<rect class="CHAIR" x="185" y="560" width="16" height="12" />
+<rect class="CHAIR" x="110" y="517" width="16" height="12" />
+<rect class="CHAIR" x="216" y="517" width="16" height="12" />
+<text class="LABEL" x="171" y="511" font-size="15" text-anchor="middle">T03</text>
+<text class="available" x="171" y="535" text-anchor="middle"></text></g>
+<rect class="CAMERA" x="225" y="460" width="60" height="26" />
+<text class="LABEL" x="255" y="473" font-size="16" text-anchor="middle">C01</text>
+<g class="item" data-id="T04"><title>T04</title>
+<rect class="TABLE" x="545" y="692" width="88" height="68" />
+<rect class="CHAIR" x="559" y="677" width="16" height="12" />
+<rect class="CHAIR" x="603" y="677" width="16" height="12" />
+<rect class="CHAIR" x="559" y="763" width="16" height="12" />
+<rect class="CHAIR" x="603" y="763" width="16" height="12" />
+<rect class="CHAIR" x="528" y="720" width="16" height="12" />
+<rect class="CHAIR" x="634" y="720" width="16" height="12" />
+<text class="LABEL" x="589" y="714" font-size="15" text-anchor="middle">T04</text>
+<text class="available" x="589" y="738" text-anchor="middle"></text></g>
+<g class="item" data-id="T05"><title>T05</title>
+<rect class="TABLE" x="700" y="692" width="88" height="68" />
+<rect class="CHAIR" x="714" y="677" width="16" height="12" />
+<rect class="CHAIR" x="758" y="677" width="16" height="12" />
+<rect class="CHAIR" x="714" y="763" width="16" height="12" />
+<rect class="CHAIR" x="758" y="763" width="16" height="12" />
+<rect class="CHAIR" x="683" y="720" width="16" height="12" />
+<rect class="CHAIR" x="789" y="720" width="16" height="12" />
+<text class="LABEL" x="744" y="714" font-size="15" text-anchor="middle">T05</text>
+<text class="available" x="744" y="738" text-anchor="middle"></text></g>
+<g class="item" data-id="T06"><title>T06</title>
+<rect class="TABLE" x="390" y="844" width="88" height="68" />
+<rect class="CHAIR" x="404" y="829" width="16" height="12" />
+<rect class="CHAIR" x="448" y="829" width="16" height="12" />
+<rect class="CHAIR" x="404" y="915" width="16" height="12" />
+<rect class="CHAIR" x="448" y="915" width="16" height="12" />
+<rect class="CHAIR" x="373" y="872" width="16" height="12" />
+<rect class="CHAIR" x="479" y="872" width="16" height="12" />
+<text class="LABEL" x="434" y="866" font-size="15" text-anchor="middle">T06</text>
+<text class="available" x="434" y="890" text-anchor="middle"></text></g>
+<g class="item" data-id="T07"><title>T07</title>
+<rect class="TABLE" x="545" y="844" width="88" height="68" />
+<rect class="CHAIR" x="559" y="829" width="16" height="12" />
+<rect class="CHAIR" x="603" y="829" width="16" height="12" />
+<rect class="CHAIR" x="559" y="915" width="16" height="12" />
+<rect class="CHAIR" x="603" y="915" width="16" height="12" />
+<rect class="CHAIR" x="528" y="872" width="16" height="12" />
+<rect class="CHAIR" x="634" y="872" width="16" height="12" />
+<text class="LABEL" x="589" y="866" font-size="15" text-anchor="middle">T07</text>
+<text class="available" x="589" y="890" text-anchor="middle"></text></g>
+<g class="item" data-id="T08"><title>T08</title>
+<rect class="TABLE" x="700" y="844" width="88" height="68" />
+<rect class="CHAIR" x="714" y="829" width="16" height="12" />
+<rect class="CHAIR" x="758" y="829" width="16" height="12" />
+<rect class="CHAIR" x="714" y="915" width="16" height="12" />
+<rect class="CHAIR" x="758" y="915" width="16" height="12" />
+<rect class="CHAIR" x="683" y="872" width="16" height="12" />
+<rect class="CHAIR" x="789" y="872" width="16" height="12" />
+<text class="LABEL" x="744" y="866" font-size="15" text-anchor="middle">T08</text>
+<text class="available" x="744" y="890" text-anchor="middle"></text></g>
+<g class="item" data-id="T09"><title>T09</title>
+<rect class="TABLE" x="390" y="996" width="88" height="68" />
+<rect class="CHAIR" x="404" y="981" width="16" height="12" />
+<rect class="CHAIR" x="448" y="981" width="16" height="12" />
+<rect class="CHAIR" x="404" y="1067" width="16" height="12" />
+<rect class="CHAIR" x="448" y="1067" width="16" height="12" />
+<rect class="CHAIR" x="373" y="1024" width="16" height="12" />
+<rect class="CHAIR" x="479" y="1024" width="16" height="12" />
+<text class="LABEL" x="434" y="1018" font-size="15" text-anchor="middle">T09</text>
+<text class="available" x="434" y="1042" text-anchor="middle"></text></g>
+<g class="item" data-id="T10"><title>T10</title>
+<rect class="TABLE" x="545" y="996" width="88" height="68" />
+<rect class="CHAIR" x="559" y="981" width="16" height="12" />
+<rect class="CHAIR" x="603" y="981" width="16" height="12" />
+<rect class="CHAIR" x="559" y="1067" width="16" height="12" />
+<rect class="CHAIR" x="603" y="1067" width="16" height="12" />
+<rect class="CHAIR" x="528" y="1024" width="16" height="12" />
+<rect class="CHAIR" x="634" y="1024" width="16" height="12" />
+<text class="LABEL" x="589" y="1018" font-size="15" text-anchor="middle">T10</text>
+<text class="available" x="589" y="1042" text-anchor="middle"></text></g>
+<g class="item" data-id="T11"><title>T11</title>
+<rect class="TABLE" x="700" y="996" width="88" height="68" />
+<rect class="CHAIR" x="714" y="981" width="16" height="12" />
+<rect class="CHAIR" x="758" y="981" width="16" height="12" />
+<rect class="CHAIR" x="714" y="1067" width="16" height="12" />
+<rect class="CHAIR" x="758" y="1067" width="16" height="12" />
+<rect class="CHAIR" x="683" y="1024" width="16" height="12" />
+<rect class="CHAIR" x="789" y="1024" width="16" height="12" />
+<text class="LABEL" x="744" y="1018" font-size="15" text-anchor="middle">T11</text>
+<text class="available" x="744" y="1042" text-anchor="middle"></text></g>
+<rect class="CAMERA" x="636" y="789" width="60" height="26" />
+<text class="LABEL" x="666" y="802" font-size="16" text-anchor="middle">C02</text>
+<g class="item" data-id="S01"><title>S01</title>
+<rect class="STANDING" x="895" y="528" width="70" height="54" />
+<text class="LABEL" x="930" y="544" font-size="15" text-anchor="middle">S01</text>
+<text class="available" x="930" y="567" text-anchor="middle"></text></g>
+<g class="item" data-id="S02"><title>S02</title>
+<rect class="STANDING" x="1013" y="528" width="70" height="54" />
+<text class="LABEL" x="1048" y="544" font-size="15" text-anchor="middle">S02</text>
+<text class="available" x="1048" y="567" text-anchor="middle"></text></g>
+<g class="item" data-id="S03"><title>S03</title>
+<rect class="STANDING" x="1131" y="528" width="70" height="54" />
+<text class="LABEL" x="1166" y="544" font-size="15" text-anchor="middle">S03</text>
+<text class="available" x="1166" y="567" text-anchor="middle"></text></g>
+<g class="item" data-id="S04"><title>S04</title>
+<rect class="STANDING" x="1249" y="528" width="70" height="54" />
+<text class="LABEL" x="1284" y="544" font-size="15" text-anchor="middle">S04</text>
+<text class="available" x="1284" y="567" text-anchor="middle"></text></g>
+<rect class="CAMERA" x="1080" y="402" width="60" height="26" />
+<text class="LABEL" x="1110" y="415" font-size="16" text-anchor="middle">C03</text>
+<g class="item" data-id="T12"><title>T12</title>
+<rect class="TABLE" x="1454" y="652" width="88" height="68" />
+<rect class="CHAIR" x="1468" y="637" width="16" height="12" />
+<rect class="CHAIR" x="1512" y="637" width="16" height="12" />
+<rect class="CHAIR" x="1468" y="723" width="16" height="12" />
+<rect class="CHAIR" x="1512" y="723" width="16" height="12" />
+<rect class="CHAIR" x="1437" y="680" width="16" height="12" />
+<rect class="CHAIR" x="1543" y="680" width="16" height="12" />
+<text class="LABEL" x="1498" y="674" font-size="15" text-anchor="middle">T12</text>
+<text class="available" x="1498" y="698" text-anchor="middle"></text></g>
+<g class="item" data-id="T13"><title>T13</title>
+<rect class="TABLE" x="1454" y="783" width="88" height="68" />
+<rect class="CHAIR" x="1468" y="768" width="16" height="12" />
+<rect class="CHAIR" x="1512" y="768" width="16" height="12" />
+<rect class="CHAIR" x="1468" y="854" width="16" height="12" />
+<rect class="CHAIR" x="1512" y="854" width="16" height="12" />
+<rect class="CHAIR" x="1437" y="811" width="16" height="12" />
+<rect class="CHAIR" x="1543" y="811" width="16" height="12" />
+<text class="LABEL" x="1498" y="805" font-size="15" text-anchor="middle">T13</text>
+<text class="available" x="1498" y="829" text-anchor="middle"></text></g>
+<g class="item" data-id="T14"><title>T14</title>
+<rect class="TABLE" x="1616" y="783" width="88" height="68" />
+<rect class="CHAIR" x="1630" y="768" width="16" height="12" />
+<rect class="CHAIR" x="1674" y="768" width="16" height="12" />
+<rect class="CHAIR" x="1630" y="854" width="16" height="12" />
+<rect class="CHAIR" x="1674" y="854" width="16" height="12" />
+<rect class="CHAIR" x="1599" y="811" width="16" height="12" />
+<rect class="CHAIR" x="1705" y="811" width="16" height="12" />
+<text class="LABEL" x="1660" y="805" font-size="15" text-anchor="middle">T14</text>
+<text class="available" x="1660" y="829" text-anchor="middle"></text></g>
+<g class="item" data-id="T15"><title>T15</title>
+<rect class="TABLE" x="1454" y="903" width="88" height="68" />
+<rect class="CHAIR" x="1468" y="888" width="16" height="12" />
+<rect class="CHAIR" x="1512" y="888" width="16" height="12" />
+<rect class="CHAIR" x="1468" y="974" width="16" height="12" />
+<rect class="CHAIR" x="1512" y="974" width="16" height="12" />
+<rect class="CHAIR" x="1437" y="931" width="16" height="12" />
+<rect class="CHAIR" x="1543" y="931" width="16" height="12" />
+<text class="LABEL" x="1498" y="925" font-size="15" text-anchor="middle">T15</text>
+<text class="available" x="1498" y="949" text-anchor="middle"></text></g>
+<g class="item" data-id="T16"><title>T16</title>
+<rect class="TABLE" x="1616" y="903" width="88" height="68" />
+<rect class="CHAIR" x="1630" y="888" width="16" height="12" />
+<rect class="CHAIR" x="1674" y="888" width="16" height="12" />
+<rect class="CHAIR" x="1630" y="974" width="16" height="12" />
+<rect class="CHAIR" x="1674" y="974" width="16" height="12" />
+<rect class="CHAIR" x="1599" y="931" width="16" height="12" />
+<rect class="CHAIR" x="1705" y="931" width="16" height="12" />
+<text class="LABEL" x="1660" y="925" font-size="15" text-anchor="middle">T16</text>
+<text class="available" x="1660" y="949" text-anchor="middle"></text></g>
+<g class="item" data-id="T17"><title>T17</title>
+<rect class="TABLE" x="1774" y="903" width="88" height="68" />
+<rect class="CHAIR" x="1788" y="888" width="16" height="12" />
+<rect class="CHAIR" x="1832" y="888" width="16" height="12" />
+<rect class="CHAIR" x="1788" y="974" width="16" height="12" />
+<rect class="CHAIR" x="1832" y="974" width="16" height="12" />
+<rect class="CHAIR" x="1757" y="931" width="16" height="12" />
+<rect class="CHAIR" x="1863" y="931" width="16" height="12" />
+<text class="LABEL" x="1818" y="925" font-size="15" text-anchor="middle">T17</text>
+<text class="available" x="1818" y="949" text-anchor="middle"></text></g>
+<g class="item" data-id="T18"><title>T18</title>
+<rect class="TABLE" x="1454" y="1019" width="88" height="68" />
+<rect class="CHAIR" x="1468" y="1004" width="16" height="12" />
+<rect class="CHAIR" x="1512" y="1004" width="16" height="12" />
+<rect class="CHAIR" x="1468" y="1090" width="16" height="12" />
+<rect class="CHAIR" x="1512" y="1090" width="16" height="12" />
+<rect class="CHAIR" x="1437" y="1047" width="16" height="12" />
+<rect class="CHAIR" x="1543" y="1047" width="16" height="12" />
+<text class="LABEL" x="1498" y="1041" font-size="15" text-anchor="middle">T18</text>
+<text class="available" x="1498" y="1065" text-anchor="middle"></text></g>
+<g class="item" data-id="T19"><title>T19</title>
+<rect class="TABLE" x="1616" y="1019" width="88" height="68" />
+<rect class="CHAIR" x="1630" y="1004" width="16" height="12" />
+<rect class="CHAIR" x="1674" y="1004" width="16" height="12" />
+<rect class="CHAIR" x="1630" y="1090" width="16" height="12" />
+<rect class="CHAIR" x="1674" y="1090" width="16" height="12" />
+<rect class="CHAIR" x="1599" y="1047" width="16" height="12" />
+<rect class="CHAIR" x="1705" y="1047" width="16" height="12" />
+<text class="LABEL" x="1660" y="1041" font-size="15" text-anchor="middle">T19</text>
+<text class="available" x="1660" y="1065" text-anchor="middle"></text></g>
+<g class="item" data-id="T20"><title>T20</title>
+<rect class="TABLE" x="1774" y="1019" width="88" height="68" />
+<rect class="CHAIR" x="1788" y="1004" width="16" height="12" />
+<rect class="CHAIR" x="1832" y="1004" width="16" height="12" />
+<rect class="CHAIR" x="1788" y="1090" width="16" height="12" />
+<rect class="CHAIR" x="1832" y="1090" width="16" height="12" />
+<rect class="CHAIR" x="1757" y="1047" width="16" height="12" />
+<rect class="CHAIR" x="1863" y="1047" width="16" height="12" />
+<text class="LABEL" x="1818" y="1041" font-size="15" text-anchor="middle">T20</text>
+<text class="available" x="1818" y="1065" text-anchor="middle"></text></g>
+<g class="item" data-id="S05"><title>S05</title>
+<rect class="STANDING" x="1964" y="1036" width="70" height="54" />
+<text class="LABEL" x="1999" y="1052" font-size="15" text-anchor="middle">S05</text>
+<text class="available" x="1999" y="1075" text-anchor="middle"></text></g>
+<g class="item" data-id="S06"><title>S06</title>
+<rect class="STANDING" x="2109" y="1036" width="70" height="54" />
+<text class="LABEL" x="2144" y="1052" font-size="15" text-anchor="middle">S06</text>
+<text class="available" x="2144" y="1075" text-anchor="middle"></text></g>
+<rect class="CAMERA" x="1872" y="819" width="60" height="26" />
+<text class="LABEL" x="1902" y="832" font-size="16" text-anchor="middle">C04</text>
+<g class="item" data-id="T21"><title>T21</title>
+<rect class="TABLE" x="2126" y="201" width="88" height="68" />
+<rect class="CHAIR" x="2140" y="186" width="16" height="12" />
+<rect class="CHAIR" x="2184" y="186" width="16" height="12" />
+<rect class="CHAIR" x="2140" y="272" width="16" height="12" />
+<rect class="CHAIR" x="2184" y="272" width="16" height="12" />
+<rect class="CHAIR" x="2109" y="229" width="16" height="12" />
+<rect class="CHAIR" x="2215" y="229" width="16" height="12" />
+<text class="LABEL" x="2170" y="223" font-size="15" text-anchor="middle">T21</text>
+<text class="available" x="2170" y="247" text-anchor="middle"></text></g>
+<g class="item" data-id="T22"><title>T22</title>
+<rect class="TABLE" x="1872" y="431" width="88" height="68" />
+<rect class="CHAIR" x="1886" y="416" width="16" height="12" />
+<rect class="CHAIR" x="1930" y="416" width="16" height="12" />
+<rect class="CHAIR" x="1886" y="502" width="16" height="12" />
+<rect class="CHAIR" x="1930" y="502" width="16" height="12" />
+<rect class="CHAIR" x="1855" y="459" width="16" height="12" />
+<rect class="CHAIR" x="1961" y="459" width="16" height="12" />
+<text class="LABEL" x="1916" y="453" font-size="15" text-anchor="middle">T22</text>
+<text class="available" x="1916" y="477" text-anchor="middle"></text></g>
+<g class="item" data-id="T23"><title>T23</title>
+<rect class="TABLE" x="2126" y="431" width="88" height="68" />
+<rect class="CHAIR" x="2140" y="416" width="16" height="12" />
+<rect class="CHAIR" x="2184" y="416" width="16" height="12" />
+<rect class="CHAIR" x="2140" y="502" width="16" height="12" />
+<rect class="CHAIR" x="2184" y="502" width="16" height="12" />
+<rect class="CHAIR" x="2109" y="459" width="16" height="12" />
+<rect class="CHAIR" x="2215" y="459" width="16" height="12" />
+<text class="LABEL" x="2170" y="453" font-size="15" text-anchor="middle">T23</text>
+<text class="available" x="2170" y="477" text-anchor="middle"></text></g>
+<g class="item" data-id="T24"><title>T24</title>
+<rect class="TABLE" x="1872" y="602" width="88" height="68" />
+<rect class="CHAIR" x="1886" y="587" width="16" height="12" />
+<rect class="CHAIR" x="1930" y="587" width="16" height="12" />
+<rect class="CHAIR" x="1886" y="673" width="16" height="12" />
+<rect class="CHAIR" x="1930" y="673" width="16" height="12" />
+<rect class="CHAIR" x="1855" y="630" width="16" height="12" />
+<rect class="CHAIR" x="1961" y="630" width="16" height="12" />
+<text class="LABEL" x="1916" y="624" font-size="15" text-anchor="middle">T24</text>
+<text class="available" x="1916" y="648" text-anchor="middle"></text></g>
+<g class="item" data-id="T25"><title>T25</title>
+<rect class="TABLE" x="2126" y="602" width="88" height="68" />
+<rect class="CHAIR" x="2140" y="587" width="16" height="12" />
+<rect class="CHAIR" x="2184" y="587" width="16" height="12" />
+<rect class="CHAIR" x="2140" y="673" width="16" height="12" />
+<rect class="CHAIR" x="2184" y="673" width="16" height="12" />
+<rect class="CHAIR" x="2109" y="630" width="16" height="12" />
+<rect class="CHAIR" x="2215" y="630" width="16" height="12" />
+<text class="LABEL" x="2170" y="624" font-size="15" text-anchor="middle">T25</text>
+<text class="available" x="2170" y="648" text-anchor="middle"></text></g>
+<rect class="CAMERA" x="2010" y="530" width="60" height="26" />
+<text class="LABEL" x="2040" y="543" font-size="16" text-anchor="middle">C05</text></svg></div>
+<figcaption><div class="legend"><b>3+ free</b><b class="low">1–2 free</b><b class="full">Full</b><span>T = seated table · S = standing station · C = camera</span></div>
+Schematic floor plan. Camera lines show assignments.</figcaption>
+</figure>
+</main>
+<script>
+const records = [{"id": "T01", "camera": "C01", "capacity": 6}, {"id": "T02", "camera": "C01", "capacity": 6}, {"id": "T03", "camera": "C01", "capacity": 6}, {"id": "T04", "camera": "C02", "capacity": 6}, {"id": "T05", "camera": "C02", "capacity": 6}, {"id": "T06", "camera": "C02", "capacity": 6}, {"id": "T07", "camera": "C02", "capacity": 6}, {"id": "T08", "camera": "C02", "capacity": 6}, {"id": "T09", "camera": "C02", "capacity": 6}, {"id": "T10", "camera": "C02", "capacity": 6}, {"id": "T11", "camera": "C02", "capacity": 6}, {"id": "S01", "camera": "C03", "capacity": 3}, {"id": "S02", "camera": "C03", "capacity": 3}, {"id": "S03", "camera": "C03", "capacity": 3}, {"id": "S04", "camera": "C03", "capacity": 3}, {"id": "T12", "camera": "C04", "capacity": 6}, {"id": "T13", "camera": "C04", "capacity": 6}, {"id": "T14", "camera": "C04", "capacity": 6}, {"id": "T15", "camera": "C04", "capacity": 6}, {"id": "T16", "camera": "C04", "capacity": 6}, {"id": "T17", "camera": "C04", "capacity": 6}, {"id": "T18", "camera": "C04", "capacity": 6}, {"id": "T19", "camera": "C04", "capacity": 6}, {"id": "T20", "camera": "C04", "capacity": 6}, {"id": "S05", "camera": "C04", "capacity": 3}, {"id": "S06", "camera": "C04", "capacity": 3}, {"id": "T21", "camera": "C05", "capacity": 6}, {"id": "T22", "camera": "C05", "capacity": 6}, {"id": "T23", "camera": "C05", "capacity": 6}, {"id": "T24", "camera": "C05", "capacity": 6}, {"id": "T25", "camera": "C05", "capacity": 6}];
+const general = document.querySelector('#general');
+const reserved = document.querySelector('#reserved');
+const standing = document.querySelector('#standing');
+let frame = 0;
+function render() {
+  const free = {general: 0, reserved: 0, standing: 0};
+  records.forEach(({id, camera, capacity}, index) => {
+    const available = (index * 11 + Math.floor(index / 3) + frame) % (capacity + 1);
+    const group = document.querySelector('[data-id="' + id + '"]');
+    group.querySelector('title').textContent = id + ' · ' + available + ' of ' + capacity + ' free · ' + camera;
+    group.querySelector('.available').textContent = available;
+    group.classList.toggle('full', available === 0);
+    group.classList.toggle('low', available > 0 && available < 3);
+    const category = capacity === 3 ? 'standing' : camera === 'C05' ? 'reserved' : 'general';
+    free[category] += available;
+  });
+  general.textContent = free.general + ' / 120';
+  reserved.textContent = free.reserved + ' / 30';
+  standing.textContent = free.standing + ' / 18';
+}
+document.querySelector('#sample').addEventListener('click', () => { frame++; render(); });
+document.querySelector('#toggle').addEventListener('change', event => {
+  document.querySelector('#coverage').toggleAttribute('hidden', !event.target.checked);
+});
+render();
+</script></html>
